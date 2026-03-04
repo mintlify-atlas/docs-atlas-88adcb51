@@ -1,0 +1,63 @@
+{
+  "projectType": "cli-tool",
+  "projectName": "hawkx",
+  "projectDescription": "CLI to fetch tweets from X using your Chrome session without API keys",
+  "theme": "aspen",
+  "primaryColor": "#7c7c7c",
+  "lightColor": "#c7c7c7",
+  "darkColor": "#0a0a0a",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Getting Started",
+        "pages": [
+          "introduction",
+          "installation",
+          "quickstart"
+        ]
+      },
+      {
+        "group": "Commands",
+        "pages": [
+          "commands/getuser",
+          "commands/getpost",
+          "commands/getbookmarks",
+          "commands/setprofile"
+        ]
+      },
+      {
+        "group": "Guides",
+        "pages": [
+          "guides/authentication",
+          "guides/output-formats",
+          "guides/chrome-profiles"
+        ]
+      },
+      {
+        "group": "Reference",
+        "pages": [
+          "reference/configuration",
+          "reference/troubleshooting"
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Fetch user tweets without API keys",
+    "Access bookmarks from your X account",
+    "Retrieve tweet threads with replies",
+    "Extract tweet metadata and images",
+    "Works with Chrome session cookies"
+  ],
+  "publicApiSurface": [
+    "hawkx getuser <name> [number]",
+    "hawkx getpost <id>",
+    "hawkx getbookmarks [number]",
+    "hawkx setprofile <profile>",
+    "get_user_tweets()",
+    "get_post()",
+    "get_post_simple()",
+    "get_bookmarks()",
+    "set_chrome_profile()"
+  ]
+}
