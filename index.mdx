@@ -1,97 +1,262 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: hawkx documentation
+description: Fetch tweets from X using your Chrome session without API keys
+mode: custom
 ---
 
-## Setting up
+<div className="relative overflow-hidden bg-gradient-to-b from-[#0f1419] via-[#1a1d27] to-[#0f1117] dark:from-[#0f1419] dark:via-[#1a1d27] dark:to-[#0f1117] py-20">
+  <div className="max-w-6xl mx-auto px-6 lg:px-8">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+      <div className="lg:col-span-7 space-y-6">
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white dark:text-white leading-tight">
+          Fetch tweets from X without API keys
+        </h1>
+        <p className="text-lg sm:text-xl text-gray-300 dark:text-gray-300 max-w-2xl">
+          hawkx is a CLI tool that uses your existing Chrome session to fetch tweets, bookmarks, and threads from X. No API key, no OAuth—just your logged-in browser cookies.
+        </p>
+        <div className="flex flex-wrap gap-3 pt-2">
+          <a 
+            href="/quickstart" 
+            className="inline-flex items-center px-6 py-3 bg-[#7c7c7c] hover:bg-[#6a6a6a] text-white font-semibold rounded-full transition-colors no-underline"
+          >
+            Get started
+          </a>
+          <a 
+            href="/commands/getuser" 
+            className="inline-flex items-center px-6 py-3 border border-white/30 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-full transition-colors no-underline"
+          >
+            View commands
+          </a>
+        </div>
+      </div>
+      <div className="lg:col-span-5 hidden lg:block">
+        <div className="bg-[#1a1d27] dark:bg-[#1a1d27] border border-[#27272a] dark:border-[#27272a] rounded-2xl p-6 shadow-2xl">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-3 h-3 rounded-full bg-red-500"></div>
+            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+            <div className="w-3 h-3 rounded-full bg-green-500"></div>
+          </div>
+          <pre className="text-sm text-gray-300 dark:text-gray-300 overflow-x-auto">
+            <code>{`$ pipx install hawkx
+$ hawkx getuser elonmusk 20 -I
 
-Get your documentation site up and running in minutes.
+[
+  {
+    "id": "1234567890",
+    "text": "Just launched...",
+    "created_at": "Mon Mar 04 12:00:00 +0000 2026",
+    "user": "elonmusk",
+    "favorites": 50000,
+    "retweets": 12000,
+    "replies": 3400,
+    "images": [
+      "https://pbs.twimg.com/media/..."
+    ]
+  }
+]`}</code>
+          </pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <div className="text-center mb-12">
+    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3">
+      Get started in minutes
+    </h2>
+    <p className="text-base text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+      Follow these steps to start fetching tweets with hawkx
+    </p>
+  </div>
 
-## Make it yours
+  <Steps>
+    <Step title="Install hawkx">
+      Install hawkx using pipx or pip. Make sure you have Python 3.10 or higher installed.
 
-Design a docs site that looks great and empowers your users.
+      <CodeGroup>
+      ```bash pipx
+      pipx install hawkx
+      ```
 
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
-  </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
-  </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
+      ```bash pip
+      pip install --user hawkx
+      ```
+      </CodeGroup>
 
-## Create beautiful pages
+      <Info>pipx is recommended as it installs the CLI in an isolated environment</Info>
+    </Step>
 
-Everything you need to create world-class documentation.
+    <Step title="Log into X in Chrome">
+      hawkx uses your Chrome session cookies to authenticate. Make sure you're logged into x.com in Chrome before running any commands.
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+      <Note>Currently, hawkx only supports macOS as it uses Keychain to decrypt Chrome cookies</Note>
+    </Step>
 
-## Need inspiration?
+    <Step title="Fetch your first tweets">
+      Run your first command to fetch recent tweets from any user:
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+      ```bash
+      hawkx getuser elonmusk 20
+      ```
+
+      This will fetch the 20 most recent tweets from @elonmusk and output them as JSON.
+
+      <Accordion title="Example output">
+      ```json
+      [
+        {
+          "id": "1234567890",
+          "text": "Just launched our newest product!",
+          "created_at": "Mon Mar 04 12:00:00 +0000 2026",
+          "user": "elonmusk",
+          "favorites": 50000,
+          "retweets": 12000,
+          "replies": 3400
+        }
+      ]
+      ```
+      </Accordion>
+    </Step>
+
+    <Step title="Explore more features">
+      hawkx supports multiple commands for different use cases:
+      
+      - Fetch tweets with images using the `-I` flag
+      - Get your bookmarks with `hawkx getbookmarks`
+      - Retrieve full tweet threads with replies using `-R`
+      
+      Check out the [commands reference](/commands/getuser) for all available options.
+    </Step>
+  </Steps>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <div className="text-center mb-12">
+    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3">
+      Explore by topic
+    </h2>
+    <p className="text-base text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+      Everything you need to work with hawkx
+    </p>
+  </div>
+
+  <CardGroup cols={2}>
+    <Card title="Commands" icon="terminal" href="/commands/getuser">
+      Complete reference for all CLI commands and flags
+    </Card>
+    <Card title="Authentication" icon="key" href="/guides/authentication">
+      Learn how hawkx uses your Chrome session cookies
+    </Card>
+    <Card title="Output formats" icon="code" href="/guides/output-formats">
+      Work with JSON output and text-only mode
+    </Card>
+    <Card title="Chrome profiles" icon="browser" href="/guides/chrome-profiles">
+      Configure and switch between Chrome profiles
+    </Card>
+  </CardGroup>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <div className="text-center mb-12">
+    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3">
+      Key features
+    </h2>
+    <p className="text-base text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+      Why developers choose hawkx
+    </p>
+  </div>
+
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="bg-white dark:bg-[#1a1d27] border border-gray-200 dark:border-[#27272a] rounded-xl p-6 hover:border-[#7c7c7c] dark:hover:border-[#7c7c7c] transition-colors">
+      <div className="text-[#7c7c7c] mb-3">
+        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No API key required</h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        Bypass X's paywalled API by using your existing browser session. No authentication setup needed.
+      </p>
+    </div>
+
+    <div className="bg-white dark:bg-[#1a1d27] border border-gray-200 dark:border-[#27272a] rounded-xl p-6 hover:border-[#7c7c7c] dark:hover:border-[#7c7c7c] transition-colors">
+      <div className="text-[#7c7c7c] mb-3">
+        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Lightning fast</h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        Fetch tweets in seconds with efficient pagination and minimal overhead. JSON output by default.
+      </p>
+    </div>
+
+    <div className="bg-white dark:bg-[#1a1d27] border border-gray-200 dark:border-[#27272a] rounded-xl p-6 hover:border-[#7c7c7c] dark:hover:border-[#7c7c7c] transition-colors">
+      <div className="text-[#7c7c7c] mb-3">
+        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Rich metadata</h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        Extract tweet text, timestamps, engagement metrics, images, and reply threads with simple flags.
+      </p>
+    </div>
+
+    <div className="bg-white dark:bg-[#1a1d27] border border-gray-200 dark:border-[#27272a] rounded-xl p-6 hover:border-[#7c7c7c] dark:hover:border-[#7c7c7c] transition-colors">
+      <div className="text-[#7c7c7c] mb-3">
+        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+        </svg>
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Access bookmarks</h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        Fetch your saved bookmarks from X with the same ease as fetching user tweets.
+      </p>
+    </div>
+
+    <div className="bg-white dark:bg-[#1a1d27] border border-gray-200 dark:border-[#27272a] rounded-xl p-6 hover:border-[#7c7c7c] dark:hover:border-[#7c7c7c] transition-colors">
+      <div className="text-[#7c7c7c] mb-3">
+        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Full thread support</h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        Retrieve complete tweet threads with replies using the -R flag. Perfect for conversation analysis.
+      </p>
+    </div>
+
+    <div className="bg-white dark:bg-[#1a1d27] border border-gray-200 dark:border-[#27272a] rounded-xl p-6 hover:border-[#7c7c7c] dark:hover:border-[#7c7c7c] transition-colors">
+      <div className="text-[#7c7c7c] mb-3">
+        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Multi-profile support</h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        Switch between Chrome profiles to use different X accounts. Perfect for managing multiple accounts.
+      </p>
+    </div>
+  </div>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <div className="bg-gradient-to-r from-[#1a1d27] to-[#242838] dark:from-[#1a1d27] dark:to-[#242838] border border-[#27272a] dark:border-[#27272a] rounded-2xl p-8 md:p-12 text-center">
+    <h2 className="text-2xl sm:text-3xl font-bold text-white dark:text-white mb-4">
+      Ready to start fetching tweets?
+    </h2>
+    <p className="text-base text-gray-300 dark:text-gray-300 max-w-2xl mx-auto mb-6">
+      Install hawkx and start fetching tweets from X in less than a minute
+    </p>
+    <a 
+      href="/installation" 
+      className="inline-flex items-center px-6 py-3 bg-[#7c7c7c] hover:bg-[#6a6a6a] text-white font-semibold rounded-full transition-colors no-underline"
+    >
+      Get started now
+    </a>
+  </div>
+</div>

@@ -1,80 +1,194 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Get started with hawkx in minutes
 ---
 
-## Get started in three steps
+## Get up and running
 
-Get your documentation site running locally and make your first customization.
+This guide will walk you through installing hawkx and running your first commands.
 
-### Step 1: Set up your local environment
-
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+<Steps>
+  <Step title="Install hawkx">
+    Install hawkx using pipx (recommended) or pip:
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+    <CodeGroup>
+    ```bash pipx
+    pipx install hawkx
+    ```
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
+    ```bash pip
+    pip install --user hawkx
+    ```
+    </CodeGroup>
+  </Step>
+  
+  <Step title="Verify Chrome login">
+    Make sure you're logged into [x.com](https://x.com) in Chrome. hawkx uses your browser's session cookies to authenticate.
     
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    <Info>
+      If you use a Chrome profile other than "Profile 1", set it with: `hawkx setprofile "Your Profile Name"`
+    </Info>
+  </Step>
+  
+  <Step title="Run your first command">
+    Fetch recent tweets from a user:
+    
+    ```bash
+    hawkx getuser elonmusk 10
+    ```
+    
+    This fetches the 10 most recent tweets from @elonmusk.
+    
+    **Expected output:**
+    
+    ```json
+    [
+      {
+        "id": "1234567890",
+        "text": "Tweet text here...",
+        "created_at": "Wed Mar 04 12:34:56 +0000 2026",
+        "user": "elonmusk",
+        "favorites": 15234,
+        "retweets": 3421,
+        "replies": 892
+      },
+      // ... 9 more tweets
+    ]
+    ```
+  </Step>
+  
+  <Step title="Try other commands">
+    Explore what else you can do:
+    
+    **Fetch tweets with image URLs:**
+    ```bash
+    hawkx getuser elonmusk 20 -I
+    ```
+    
+    **Get text-only output:**
+    ```bash
+    hawkx getuser elonmusk 5 -t
+    ```
+    
+    **Fetch your bookmarks:**
+    ```bash
+    hawkx getbookmarks 50
+    ```
+    
+    **Get a specific tweet with replies:**
+    ```bash
+    hawkx getpost 1234567890 -R
+    ```
+  </Step>
+</Steps>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+## Common use cases
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+### Fetch tweets from a user
 
-### Step 3: Go live
+You can use either the username or a full URL:
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+<CodeGroup>
+```bash Username
+hawkx getuser elonmusk 20
+```
+
+```bash URL
+hawkx getuser https://x.com/elonmusk 20
+```
+</CodeGroup>
+
+Both commands fetch the same data.
+
+### Include images
+
+Add the `-I` flag to get image URLs in the output:
+
+```bash
+hawkx getuser elonmusk 20 -I
+```
+
+The output will include an `images` array:
+
+```json
+{
+  "id": "1234567890",
+  "text": "Check out this image!",
+  "images": [
+    "https://pbs.twimg.com/media/abc123.jpg",
+    "https://pbs.twimg.com/media/def456.jpg"
+  ],
+  // ... other fields
+}
+```
+
+### Get your bookmarks
+
+Fetch tweets you've bookmarked:
+
+```bash
+hawkx getbookmarks 100
+```
+
+<Tip>
+  You can combine flags: `hawkx getbookmarks 100 -I -t` gives you text-only output with images.
+</Tip>
+
+### Fetch a specific tweet
+
+Get a single tweet by ID or URL:
+
+<CodeGroup>
+```bash Tweet ID
+hawkx getpost 1234567890
+```
+
+```bash Tweet URL
+hawkx getpost https://x.com/elonmusk/status/1234567890
+```
+</CodeGroup>
+
+Add `-R` to include replies:
+
+```bash
+hawkx getpost 1234567890 -R
+```
+
+## Available flags
+
+All fetch commands support these flags:
+
+| Flag | Description |
+|------|-------------|
+| `-R` | Include replies or reply metadata |
+| `-I` | Include image URLs in the output |
+| `-t` | Text-only output (prints just tweet text, no JSON) |
+
+## Understanding the output
+
+By default, hawkx outputs JSON with these fields:
+
+- `id` — Unique tweet identifier
+- `text` — Full text content
+- `created_at` — Timestamp in X's format
+- `user` — Screen name (username)
+- `favorites` — Number of likes
+- `retweets` — Number of retweets
+- `replies` — Number of replies
+
+With `-I`, you get:
+- `images` — Array of image URLs
+
+With `-R` on replies, you get:
+- `in_reply_to` — Object with `status_id` and `screen_name`
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
-
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Command reference" icon="book" href="/commands/getuser">
+    Explore all available commands and options
+  </Card>
+  <Card title="Configuration" icon="gear" href="/reference/configuration">
+    Learn about Chrome profiles and settings
+  </Card>
 </CardGroup>
-
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>

@@ -1,0 +1,253 @@
+---
+title: "getpost"
+description: "Fetch a specific tweet by ID or URL"
+---
+
+## Overview
+
+The `getpost` command retrieves a specific tweet using its ID or URL. Optionally, it can fetch the entire reply thread below the tweet.
+
+## Syntax
+
+```bash
+hawkx getpost <tweet_id> [options]
+```
+
+## Parameters
+
+<ParamField path="tweet_id" type="string" required>
+  Tweet ID or full URL. Accepts:
+  - Numeric ID: `1234567890`
+  - Full URL: `https://x.com/elonmusk/status/1234567890`
+  - URL with query params: `https://x.com/user/status/1234567890?s=20`
+</ParamField>
+
+## Options
+
+| Flag | Description |
+|------|-------------|
+| `-R`, `--replies` | Include all replies in the thread |
+| `-I`, `--images` | Include image URLs in the output |
+| `-t`, `--text` | Print only tweet text (one per line, no JSON) |
+
+## Usage Examples
+
+### Basic Usage
+
+Fetch a single tweet by ID:
+
+```bash
+hawkx getpost 1234567890
+```
+
+### Using Full URL
+
+You can also use the complete tweet URL:
+
+```bash
+hawkx getpost https://x.com/elonmusk/status/1234567890
+```
+
+### Fetch with Replies
+
+Get the tweet and all replies in the thread:
+
+```bash
+hawkx getpost 1234567890 -R
+```
+
+### Include Images
+
+Fetch tweet with image URLs:
+
+```bash
+hawkx getpost 1234567890 -I
+```
+
+### Text-Only Output
+
+Print only the text content:
+
+```bash
+hawkx getpost 1234567890 -t
+```
+
+### Combine Multiple Options
+
+Fetch tweet with replies, images, and reply metadata:
+
+```bash
+hawkx getpost 1234567890 -R -I
+```
+
+## Output Format
+
+<Accordion title="Example JSON Output (Single Tweet)">
+```json
+[
+  {
+    "id": "1234567890123456789",
+    "text": "This is the tweet content",
+    "created_at": "Wed Mar 01 12:34:56 +0000 2023",
+    "user": "elonmusk",
+    "favorites": 5420,
+    "retweets": 1230,
+    "replies": 456
+  }
+]
+```
+</Accordion>
+
+<Accordion title="Example JSON Output (With Replies -R)">
+```json
+[
+  {
+    "id": "1234567890123456789",
+    "text": "This is the original tweet",
+    "created_at": "Wed Mar 01 12:34:56 +0000 2023",
+    "user": "elonmusk",
+    "favorites": 5420,
+    "retweets": 1230,
+    "replies": 456
+  },
+  {
+    "id": "1234567890123456790",
+    "text": "@elonmusk This is a reply to the tweet",
+    "created_at": "Wed Mar 01 12:45:30 +0000 2023",
+    "user": "someuser",
+    "favorites": 89,
+    "retweets": 12,
+    "replies": 5,
+    "in_reply_to": {
+      "status_id": "1234567890123456789",
+      "screen_name": "elonmusk"
+    }
+  },
+  {
+    "id": "1234567890123456791",
+    "text": "@elonmusk Another reply",
+    "created_at": "Wed Mar 01 12:50:15 +0000 2023",
+    "user": "anotheruser",
+    "favorites": 34,
+    "retweets": 3,
+    "replies": 1,
+    "in_reply_to": {
+      "status_id": "1234567890123456789",
+      "screen_name": "elonmusk"
+    }
+  }
+]
+```
+</Accordion>
+
+<Accordion title="Example JSON Output (With Images -I)">
+```json
+[
+  {
+    "id": "1234567890123456789",
+    "text": "Check out this image!",
+    "created_at": "Wed Mar 01 12:34:56 +0000 2023",
+    "user": "elonmusk",
+    "favorites": 5420,
+    "retweets": 1230,
+    "replies": 456,
+    "images": [
+      "https://pbs.twimg.com/media/ExampleImage1.jpg",
+      "https://pbs.twimg.com/media/ExampleImage2.jpg"
+    ]
+  }
+]
+```
+</Accordion>
+
+<Accordion title="Example Text Output (With -t flag)">
+```
+This is the original tweet
+@elonmusk This is a reply to the tweet
+@elonmusk Another reply
+```
+</Accordion>
+
+## Output Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Unique tweet identifier |
+| `text` | string | Full text content of the tweet |
+| `created_at` | string | Timestamp when the tweet was posted |
+| `user` | string | Screen name of the tweet author |
+| `favorites` | integer | Number of likes/favorites |
+| `retweets` | integer | Number of retweets |
+| `replies` | integer | Number of replies |
+| `images` | array | Image URLs (only with `-I` flag) |
+| `in_reply_to` | object | Reply metadata (only with `-R` flag for reply tweets) |
+
+## Common Use Cases
+
+### Download Viral Tweet
+
+Save a specific tweet with all its metadata:
+
+```bash
+hawkx getpost 1234567890 -I > tweet.json
+```
+
+### Analyze Reply Thread
+
+Fetch an entire conversation thread for analysis:
+
+```bash
+hawkx getpost 1234567890 -R > thread.json
+```
+
+### Extract Thread Text
+
+Get just the text from a tweet and all its replies:
+
+```bash
+hawkx getpost 1234567890 -R -t
+```
+
+### Archive with Media
+
+Save a tweet with all image URLs and reply information:
+
+```bash
+hawkx getpost 1234567890 -R -I > complete_thread.json
+```
+
+## Notes
+
+<Note>
+The `tweet_id` parameter accepts both numeric IDs and full URLs. The command automatically extracts the ID from the URL.
+</Note>
+
+<Tip>
+Use the `-R` flag to fetch entire conversation threads, which is useful for analyzing discussions or following multi-tweet threads.
+</Tip>
+
+<Warning>
+Without the `-R` flag, only the single tweet specified by the ID is fetched. Replies are not included by default.
+</Warning>
+
+## Behavior Notes
+
+### URL Parsing
+
+The command intelligently parses tweet URLs:
+- Extracts ID from `/status/` URLs
+- Removes query parameters automatically
+- Handles trailing slashes
+
+### Reply Inclusion
+
+When using `-R`:
+- Fetches the full threaded conversation
+- Includes reply metadata with `in_reply_to` field
+- Returns all replies chronologically
+
+## Related Commands
+
+- [getuser](/commands/getuser) - Fetch tweets from a user timeline
+- [getbookmarks](/commands/getbookmarks) - Fetch your bookmarked tweets
+- [setprofile](/commands/setprofile) - Configure Chrome profile settings

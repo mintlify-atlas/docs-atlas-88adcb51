@@ -1,0 +1,228 @@
+---
+title: "getuser"
+description: "Fetch recent tweets from a user timeline"
+---
+
+## Overview
+
+The `getuser` command retrieves recent tweets from a specified user's timeline. It accepts a screen name or full X/Twitter URL and returns structured JSON data containing tweet information.
+
+## Syntax
+
+```bash
+hawkx getuser <user> [limit] [options]
+```
+
+## Parameters
+
+<ParamField path="user" type="string" required>
+  Screen name or URL of the user to fetch tweets from. Accepts:
+  - Screen name: `elonmusk`
+  - With @ symbol: `@elonmusk`
+  - Full URL: `https://x.com/elonmusk`
+</ParamField>
+
+<ParamField path="limit" type="integer" default="40">
+  Number of posts to retrieve. Defaults to 40 if not specified.
+</ParamField>
+
+## Options
+
+| Flag | Description |
+|------|-------------|
+| `-R`, `--replies` | Include replies and reply metadata in the output |
+| `-I`, `--images` | Include image URLs in the output |
+| `-t`, `--text` | Print only tweet text (one per line, no JSON) |
+
+## Usage Examples
+
+### Basic Usage
+
+Fetch 40 tweets from a user (default):
+
+```bash
+hawkx getuser elonmusk
+```
+
+### Fetch Specific Number of Tweets
+
+Get 20 tweets from a user:
+
+```bash
+hawkx getuser elonmusk 20
+```
+
+### Using Full URL
+
+You can also use the full X/Twitter URL:
+
+```bash
+hawkx getuser https://x.com/MohiniWealth 100
+```
+
+### Include Images
+
+Fetch tweets with image URLs:
+
+```bash
+hawkx getuser elonmusk 20 -I
+```
+
+### Include Replies
+
+Get tweets including replies and reply metadata:
+
+```bash
+hawkx getuser elonmusk 50 -R
+```
+
+### Text-Only Output
+
+Print only the text content without JSON formatting:
+
+```bash
+hawkx getuser MohiniWealth 100 -t
+```
+
+### Combine Multiple Options
+
+Fetch tweets with both images and reply metadata:
+
+```bash
+hawkx getuser elonmusk 30 -R -I
+```
+
+## Output Format
+
+<Accordion title="Example JSON Output (Default)">
+```json
+[
+  {
+    "id": "1234567890123456789",
+    "text": "This is a sample tweet",
+    "created_at": "Wed Mar 01 12:34:56 +0000 2023",
+    "user": "elonmusk",
+    "favorites": 1250,
+    "retweets": 340,
+    "replies": 89
+  },
+  {
+    "id": "9876543210987654321",
+    "text": "Another tweet example",
+    "created_at": "Wed Mar 01 10:20:30 +0000 2023",
+    "user": "elonmusk",
+    "favorites": 2100,
+    "retweets": 567,
+    "replies": 145
+  }
+]
+```
+</Accordion>
+
+<Accordion title="Example JSON Output (With -I flag)">
+```json
+[
+  {
+    "id": "1234567890123456789",
+    "text": "Check out this amazing photo!",
+    "created_at": "Wed Mar 01 12:34:56 +0000 2023",
+    "user": "elonmusk",
+    "favorites": 1250,
+    "retweets": 340,
+    "replies": 89,
+    "images": [
+      "https://pbs.twimg.com/media/Example1.jpg",
+      "https://pbs.twimg.com/media/Example2.jpg"
+    ]
+  }
+]
+```
+</Accordion>
+
+<Accordion title="Example JSON Output (With -R flag)">
+```json
+[
+  {
+    "id": "1234567890123456789",
+    "text": "@someuser This is a reply to your tweet",
+    "created_at": "Wed Mar 01 12:34:56 +0000 2023",
+    "user": "elonmusk",
+    "favorites": 450,
+    "retweets": 120,
+    "replies": 35,
+    "in_reply_to": {
+      "status_id": "9876543210987654321",
+      "screen_name": "someuser"
+    }
+  }
+]
+```
+</Accordion>
+
+<Accordion title="Example Text Output (With -t flag)">
+```
+This is a sample tweet
+Another tweet example
+Yet another tweet from the timeline
+```
+</Accordion>
+
+## Output Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Unique tweet identifier |
+| `text` | string | Full text content of the tweet |
+| `created_at` | string | Timestamp when the tweet was posted |
+| `user` | string | Screen name of the tweet author |
+| `favorites` | integer | Number of likes/favorites |
+| `retweets` | integer | Number of retweets |
+| `replies` | integer | Number of replies |
+| `images` | array | Image URLs (only with `-I` flag) |
+| `in_reply_to` | object | Reply metadata (only with `-R` flag for reply tweets) |
+
+## Common Use Cases
+
+### Research and Analysis
+
+Collect tweets for sentiment analysis or research:
+
+```bash
+hawkx getuser researcher_account 200 > tweets.json
+```
+
+### Archive User Timeline
+
+Save a user's recent tweets with all metadata:
+
+```bash
+hawkx getuser username 500 -I -R > archive.json
+```
+
+### Quick Text Extraction
+
+Extract just the text for quick reading or processing:
+
+```bash
+hawkx getuser username 50 -t | grep "keyword"
+```
+
+## Notes
+
+<Note>
+The user parameter is flexible and accepts screen names with or without the `@` symbol, as well as full X/Twitter URLs.
+</Note>
+
+<Warning>
+By default, replies are excluded from the timeline. Use the `-R` flag to include them.
+</Warning>
+
+<Tip>
+Combine the `-t` flag with command-line tools like `grep`, `wc`, or `less` for quick text processing without dealing with JSON.
+</Tip>
+
+## Related Commands
+
+- [getpost](/commands/getpost) - Fetch a specific tweet by ID
+- [getbookmarks](/commands/getbookmarks) - Fetch your bookmarked tweets
+- [setprofile](/commands/setprofile) - Configure Chrome profile settings

@@ -1,0 +1,359 @@
+---
+title: Output Formats
+description: Customize hawkx output with JSON, text-only mode, and optional fields
+---
+
+## Default JSON Output
+
+By default, hawkx returns tweets as JSON with the following fields:
+
+```json
+[
+  {
+    "id": "1234567890",
+    "text": "Tweet content here...",
+    "created_at": "Mon Jan 01 12:00:00 +0000 2024",
+    "user": "elonmusk",
+    "favorites": 1250,
+    "retweets": 340,
+    "replies": 89
+  }
+]
+```
+
+### Field Descriptions
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Tweet ID (from `rest_id` or `legacy.id_str`) |
+| `text` | string | Full tweet text (`legacy.full_text`) |
+| `created_at` | string | Timestamp in X's format |
+| `user` | string | Screen name of tweet author |
+| `favorites` | integer | Like count (`legacy.favorite_count`) |
+| `retweets` | integer | Retweet count (`legacy.retweet_count`) |
+| `replies` | integer | Reply count (`legacy.reply_count`) |
+
+<Info>
+  These fields are extracted from X's GraphQL API response in the `_tweet_to_record` function (`cli.py:72-90`).
+</Info>
+
+## Output Flags
+
+You can customize the output format using these command-line flags:
+
+### `-I` / `--images` - Include Image URLs
+
+Adds an `images` array containing all media URLs from the tweet.
+
+```bash
+hawkx getuser elonmusk 10 -I
+```
+
+**Output:**
+```json
+[
+  {
+    "id": "1234567890",
+    "text": "Check out this photo!",
+    "created_at": "Mon Jan 01 12:00:00 +0000 2024",
+    "user": "elonmusk",
+    "favorites": 5420,
+    "retweets": 890,
+    "replies": 234,
+    "images": [
+      "https://pbs.twimg.com/media/ABC123.jpg",
+      "https://pbs.twimg.com/media/DEF456.jpg"
+    ]
+  }
+]
+```
+
+**How it works:**
+- Extracts from `legacy.extended_entities.media` first
+- Falls back to `legacy.entities.media`
+- Returns `media_url_https` (or `media_url` as fallback)
+- Deduplicates URLs
+
+<Note>
+  Images are only included when the `-I` flag is present. Without it, the `images` field is omitted entirely.
+</Note>
+
+### `-R` / `--replies` - Include Reply Metadata
+
+Adds `in_reply_to` object for tweets that are replies.
+
+```bash
+hawkx getpost 1234567890 -R
+```
+
+**Output:**
+```json
+[
+  {
+    "id": "1234567890",
+    "text": "@someone Great point!",
+    "created_at": "Mon Jan 01 12:00:00 +0000 2024",
+    "user": "elonmusk",
+    "favorites": 120,
+    "retweets": 15,
+    "replies": 8,
+    "in_reply_to": {
+      "status_id": "1234567889",
+      "screen_name": "someone"
+    }
+  }
+]
+```
+
+**Behavior:**
+- Only present when tweet is a reply (has `legacy.in_reply_to_status_id_str`)
+- Contains `status_id` and `screen_name` of parent tweet
+- Omitted for top-level tweets (not replies)
+
+**Use cases:**
+- Building conversation threads
+- Fetching replies with `getpost -R`
+- Including replies in user timelines (`getuser <name> -R`)
+
+### `-t` / `--text` - Text-Only Mode
+
+Prints only tweet text, one per line. No JSON, no metadata.
+
+```bash
+hawkx getuser elonmusk 5 -t
+```
+
+**Output:**
+```
+First tweet text here
+Second tweet text here
+Third tweet text here
+Fourth tweet text here
+Fifth tweet text here
+```
+
+**Characteristics:**
+- Plain text output (not JSON)
+- One tweet per line
+- No quotes or escaping
+- Useful for piping to other commands
+- Cannot be combined with JSON parsing
+
+<Warning>
+  In text-only mode, all other fields (images, reply metadata, counts) are discarded. Use JSON mode if you need structured data.
+</Warning>
+
+## Combining Flags
+
+You can combine multiple flags to customize output:
+
+```bash
+# JSON with images and reply metadata
+hawkx getuser elonmusk 20 -I -R
+
+# Text-only mode with replies included in results
+hawkx getpost 1234567890 -R -t
+
+# Bookmarks with images, text-only output
+hawkx getbookmarks 50 -I -t
+```
+
+<Accordion title="Flag combinations">
+  | Flags | Output Format | Includes |
+  |-------|---------------|----------|
+  | (none) | JSON | id, text, created_at, user, favorites, retweets, replies |
+  | `-I` | JSON | + images array |
+  | `-R` | JSON | + in_reply_to object (if reply) |
+  | `-I -R` | JSON | + images + in_reply_to |
+  | `-t` | Text | Only tweet text, one per line |
+  | `-t -I` | Text | Text only (images ignored) |
+  | `-t -R` | Text | Text only (reply metadata ignored) |
+  | `-t -I -R` | Text | Text only (all metadata ignored) |
+</Accordion>
+
+## Implementation Details
+
+Output formatting happens in the `_tweet_to_record` function:
+
+```python
+def _tweet_to_record(tweet, include_images=False, include_reply_meta=False):
+    legacy = tweet.get("legacy", {})
+    r = {
+        "id": tweet.get("rest_id") or legacy.get("id_str"),
+        "text": legacy.get("full_text", ""),
+        "created_at": legacy.get("created_at", ""),
+        "user": tweet.get("core", {}).get("user_results", {}).get("result", {}).get("legacy", {}).get("screen_name", ""),
+        "favorites": legacy.get("favorite_count", 0),
+        "retweets": legacy.get("retweet_count", 0),
+        "replies": legacy.get("reply_count", 0),
+    }
+    if include_images:
+        r["images"] = _extract_images(tweet)
+    if include_reply_meta and legacy.get("in_reply_to_status_id_str"):
+        r["in_reply_to"] = {
+            "status_id": legacy.get("in_reply_to_status_id_str"),
+            "screen_name": legacy.get("in_reply_to_screen_name"),
+        }
+    return r
+```
+
+This function:
+1. Extracts core fields from X's GraphQL response
+2. Navigates nested `legacy` and `core.user_results` structures
+3. Conditionally adds `images` if flag enabled
+4. Conditionally adds `in_reply_to` if flag enabled AND tweet is a reply
+5. Returns a clean dictionary with only relevant fields
+
+## Examples
+
+<Tabs>
+  <Tab title="Basic JSON">
+    ```bash
+    hawkx getuser elonmusk 3
+    ```
+    
+    ```json
+    [
+      {
+        "id": "1234567890",
+        "text": "Building something new",
+        "created_at": "Mon Jan 01 12:00:00 +0000 2024",
+        "user": "elonmusk",
+        "favorites": 15000,
+        "retweets": 2500,
+        "replies": 890
+      },
+      {
+        "id": "1234567891",
+        "text": "Ship it",
+        "created_at": "Mon Jan 01 13:00:00 +0000 2024",
+        "user": "elonmusk",
+        "favorites": 12000,
+        "retweets": 1800,
+        "replies": 450
+      }
+    ]
+    ```
+  </Tab>
+  
+  <Tab title="With Images">
+    ```bash
+    hawkx getuser elonmusk 2 -I
+    ```
+    
+    ```json
+    [
+      {
+        "id": "1234567890",
+        "text": "New product photo",
+        "created_at": "Mon Jan 01 12:00:00 +0000 2024",
+        "user": "elonmusk",
+        "favorites": 25000,
+        "retweets": 5000,
+        "replies": 1200,
+        "images": [
+          "https://pbs.twimg.com/media/ABC123.jpg"
+        ]
+      }
+    ]
+    ```
+  </Tab>
+  
+  <Tab title="With Replies">
+    ```bash
+    hawkx getpost 1234567890 -R
+    ```
+    
+    ```json
+    [
+      {
+        "id": "1234567890",
+        "text": "Original tweet",
+        "created_at": "Mon Jan 01 12:00:00 +0000 2024",
+        "user": "elonmusk",
+        "favorites": 5000,
+        "retweets": 800,
+        "replies": 234
+      },
+      {
+        "id": "1234567891",
+        "text": "@elonmusk Interesting point!",
+        "created_at": "Mon Jan 01 12:05:00 +0000 2024",
+        "user": "someone",
+        "favorites": 120,
+        "retweets": 5,
+        "replies": 2,
+        "in_reply_to": {
+          "status_id": "1234567890",
+          "screen_name": "elonmusk"
+        }
+      }
+    ]
+    ```
+  </Tab>
+  
+  <Tab title="Text Only">
+    ```bash
+    hawkx getuser elonmusk 3 -t
+    ```
+    
+    ```
+    Building something new
+    Ship it
+    Launch day
+    ```
+  </Tab>
+</Tabs>
+
+## Piping and Processing
+
+### JSON Processing with jq
+
+```bash
+# Extract only tweet IDs
+hawkx getuser elonmusk 10 | jq '.[].id'
+
+# Get tweets with >1000 likes
+hawkx getuser elonmusk 50 | jq '.[] | select(.favorites > 1000)'
+
+# Count total retweets
+hawkx getbookmarks 100 | jq '[.[].retweets] | add'
+
+# Download all images
+hawkx getuser elonmusk 20 -I | jq -r '.[].images[]' | xargs wget
+```
+
+### Text Processing
+
+```bash
+# Count tweets containing "AI"
+hawkx getuser elonmusk 100 -t | grep -c "AI"
+
+# Save to file
+hawkx getbookmarks 50 -t > bookmarks.txt
+
+# Search for keyword
+hawkx getuser elonmusk 100 -t | grep -i "tesla"
+```
+
+## Performance Notes
+
+- JSON mode: ~2KB per tweet (without images/replies)
+- JSON with `-I`: +0.5KB per tweet with media
+- JSON with `-R`: +0.2KB per reply tweet
+- Text mode: ~200 bytes per tweet (much smaller)
+
+<Tip>
+  Use `-t` flag when processing large datasets if you only need tweet text. It's significantly faster and uses less memory.
+</Tip>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Commands" icon="terminal" href="/commands/getuser">
+    See all available hawkx commands
+  </Card>
+  <Card title="Chrome Profiles" icon="browser" href="/guides/chrome-profiles">
+    Manage multiple accounts
+  </Card>
+</CardGroup>

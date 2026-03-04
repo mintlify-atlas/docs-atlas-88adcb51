@@ -1,0 +1,82 @@
+---
+title: Introduction
+description: Fetch tweets from X using your Chrome session without API keys or OAuth
+---
+
+## What is hawkx?
+
+hawkx is a CLI tool that lets you fetch tweets, bookmarks, and post threads from X (formerly Twitter) using your existing Chrome browser session. No API key required, no OAuth flow — it simply uses the cookies from your logged-in Chrome profile.
+
+## Why hawkx?
+
+X's API is paywalled, making it difficult and expensive to access basic data programmatically. hawkx solves this by acting as a thin wrapper over the same requests the X web app makes. If you can view it in your browser, you can fetch it with hawkx.
+
+## Key features
+
+<CardGroup cols={2}>
+  <Card title="No API key needed" icon="key">
+    Uses your Chrome session cookies — no API credentials required
+  </Card>
+  <Card title="Simple CLI interface" icon="terminal">
+    Straightforward commands for common tasks like fetching tweets and bookmarks
+  </Card>
+  <Card title="JSON output" icon="code">
+    Structured data output that's easy to parse and process
+  </Card>
+  <Card title="Flexible options" icon="sliders">
+    Control what data to fetch with flags for images, replies, and text-only output
+  </Card>
+</CardGroup>
+
+## What you can do
+
+- Fetch recent tweets from any user
+- Get your bookmarks
+- Retrieve individual posts with or without replies
+- Extract image URLs from tweets
+- Switch between Chrome profiles
+- Output as JSON or plain text
+
+## Requirements
+
+<Warning>
+  hawkx currently only works on macOS due to Chrome cookie decryption using Keychain.
+</Warning>
+
+Before you can use hawkx, you need:
+
+- **macOS** — Chrome cookie decryption relies on macOS Keychain
+- **Python 3.10 or later** — Required for the CLI tool
+- **Chrome browser** — Must have Chrome installed
+- **Logged into X** — You must be signed into x.com in Chrome
+
+## Output format
+
+By default, hawkx outputs JSON with the following fields:
+
+- `id` — Tweet ID
+- `text` — Full text of the tweet
+- `created_at` — Timestamp
+- `user` — Screen name of the author
+- `favorites` — Like count
+- `retweets` — Retweet count
+- `replies` — Reply count
+
+Use the `-I` flag to include an `images` array, and `-R` for reply metadata.
+
+## Disclaimer
+
+<Note>
+  This tool automates access to X using your own browser session. You are responsible for complying with X's Terms of Service. Use at your own risk.
+</Note>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Install hawkx with pipx or pip
+  </Card>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get started with your first command
+  </Card>
+</CardGroup>

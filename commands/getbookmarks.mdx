@@ -1,0 +1,252 @@
+---
+title: "getbookmarks"
+description: "Fetch your bookmarked tweets from X/Twitter"
+---
+
+## Overview
+
+The `getbookmarks` command retrieves your bookmarked tweets from X/Twitter using your Chrome browser session. It returns structured JSON data containing information about each bookmarked tweet.
+
+## Syntax
+
+```bash
+hawkx getbookmarks [limit] [options]
+```
+
+## Parameters
+
+<ParamField path="limit" type="integer" default="40">
+  Number of bookmarks to retrieve. Defaults to 40 if not specified.
+</ParamField>
+
+## Options
+
+| Flag | Description |
+|------|-------------|
+| `-R`, `--replies` | Include reply metadata for tweets that are replies |
+| `-I`, `--images` | Include image URLs in the output |
+| `-t`, `--text` | Print only tweet text (one per line, no JSON) |
+
+## Usage Examples
+
+### Basic Usage
+
+Fetch 40 bookmarks (default):
+
+```bash
+hawkx getbookmarks
+```
+
+### Fetch Specific Number of Bookmarks
+
+Get 50 bookmarks:
+
+```bash
+hawkx getbookmarks 50
+```
+
+### Include Images
+
+Fetch bookmarks with image URLs:
+
+```bash
+hawkx getbookmarks 30 -I
+```
+
+### Include Reply Metadata
+
+Get bookmarks with reply information:
+
+```bash
+hawkx getbookmarks 50 -R
+```
+
+### Text-Only Output
+
+Print only the text content without JSON formatting:
+
+```bash
+hawkx getbookmarks 50 -t
+```
+
+### Combine Multiple Options
+
+Fetch bookmarks with both images and reply metadata:
+
+```bash
+hawkx getbookmarks 100 -R -I
+```
+
+### Save to File
+
+Export bookmarks to a JSON file:
+
+```bash
+hawkx getbookmarks 200 -I > bookmarks.json
+```
+
+## Output Format
+
+<Accordion title="Example JSON Output (Default)">
+```json
+[
+  {
+    "id": "1234567890123456789",
+    "text": "This is a bookmarked tweet about AI developments",
+    "created_at": "Wed Mar 01 12:34:56 +0000 2023",
+    "user": "ai_researcher",
+    "favorites": 2340,
+    "retweets": 567,
+    "replies": 123
+  },
+  {
+    "id": "9876543210987654321",
+    "text": "Another interesting tweet I saved",
+    "created_at": "Tue Feb 28 08:20:15 +0000 2023",
+    "user": "tech_writer",
+    "favorites": 890,
+    "retweets": 234,
+    "replies": 67
+  }
+]
+```
+</Accordion>
+
+<Accordion title="Example JSON Output (With -I flag)">
+```json
+[
+  {
+    "id": "1234567890123456789",
+    "text": "Amazing visualization!",
+    "created_at": "Wed Mar 01 12:34:56 +0000 2023",
+    "user": "data_scientist",
+    "favorites": 4520,
+    "retweets": 1230,
+    "replies": 234,
+    "images": [
+      "https://pbs.twimg.com/media/Chart1.jpg",
+      "https://pbs.twimg.com/media/Chart2.jpg"
+    ]
+  }
+]
+```
+</Accordion>
+
+<Accordion title="Example JSON Output (With -R flag)">
+```json
+[
+  {
+    "id": "1234567890123456789",
+    "text": "@someuser Great point about machine learning!",
+    "created_at": "Wed Mar 01 12:34:56 +0000 2023",
+    "user": "ml_engineer",
+    "favorites": 156,
+    "retweets": 34,
+    "replies": 12,
+    "in_reply_to": {
+      "status_id": "9876543210987654321",
+      "screen_name": "someuser"
+    }
+  }
+]
+```
+</Accordion>
+
+<Accordion title="Example Text Output (With -t flag)">
+```
+This is a bookmarked tweet about AI developments
+Another interesting tweet I saved
+Amazing visualization!
+Great point about machine learning!
+```
+</Accordion>
+
+## Output Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Unique tweet identifier |
+| `text` | string | Full text content of the tweet |
+| `created_at` | string | Timestamp when the tweet was posted |
+| `user` | string | Screen name of the tweet author |
+| `favorites` | integer | Number of likes/favorites |
+| `retweets` | integer | Number of retweets |
+| `replies` | integer | Number of replies |
+| `images` | array | Image URLs (only with `-I` flag) |
+| `in_reply_to` | object | Reply metadata (only with `-R` flag for reply tweets) |
+
+## Common Use Cases
+
+### Export All Bookmarks
+
+Back up your bookmarks to a JSON file:
+
+```bash
+hawkx getbookmarks 500 -I -R > my_bookmarks.json
+```
+
+### Search Bookmarks
+
+Find specific keywords in your bookmarked tweets:
+
+```bash
+hawkx getbookmarks 200 -t | grep "machine learning"
+```
+
+### Analyze Bookmark Patterns
+
+Extract data for analysis:
+
+```bash
+hawkx getbookmarks 1000 > bookmarks_analysis.json
+```
+
+### Create Reading List
+
+Get text-only output for easier reading:
+
+```bash
+hawkx getbookmarks 100 -t | less
+```
+
+### Archive with Media
+
+Save bookmarks with all image references:
+
+```bash
+hawkx getbookmarks 300 -I | jq '.[] | select(.images | length > 0)' > bookmarks_with_images.json
+```
+
+## Notes
+
+<Note>
+You must be logged into X/Twitter in Chrome for this command to work. HawkX uses your browser session to authenticate.
+</Note>
+
+<Warning>
+Bookmarks are fetched in reverse chronological order (newest first). The limit parameter controls how many bookmarks to retrieve, not which ones.
+</Warning>
+
+<Tip>
+Combine with `jq` or other JSON processing tools to filter and analyze your bookmarks programmatically.
+</Tip>
+
+## Authentication Requirements
+
+This command requires:
+- Active Chrome browser session
+- Logged in to x.com
+- Valid authentication cookies
+- Proper Chrome profile configured (see [setprofile](/commands/setprofile))
+
+## Performance Notes
+
+- Fetching large numbers of bookmarks (500+) may take longer
+- Network speed affects retrieval time
+- Rate limiting may apply for very large requests
+
+## Related Commands
+
+- [getuser](/commands/getuser) - Fetch tweets from a user timeline
+- [getpost](/commands/getpost) - Fetch a specific tweet by ID
+- [setprofile](/commands/setprofile) - Configure Chrome profile settings

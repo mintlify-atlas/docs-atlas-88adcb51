@@ -1,0 +1,140 @@
+---
+title: Installation
+description: Install hawkx on your macOS system
+---
+
+## Prerequisites
+
+Before installing hawkx, ensure you meet these requirements:
+
+<Steps>
+  <Step title="Check your operating system">
+    hawkx currently only works on **macOS** due to Chrome cookie decryption using Keychain.
+  </Step>
+  
+  <Step title="Verify Python version">
+    You need **Python 3.10 or later**. Check your version:
+    
+    ```bash
+    python3 --version
+    ```
+    
+    If you need to upgrade Python, visit [python.org](https://www.python.org/downloads/) or use Homebrew:
+    
+    ```bash
+    brew install python@3.10
+    ```
+  </Step>
+  
+  <Step title="Install Chrome">
+    hawkx requires Google Chrome to be installed on your system. Download it from [google.com/chrome](https://www.google.com/chrome/) if you don't have it.
+  </Step>
+  
+  <Step title="Log into X">
+    Open Chrome and log into [x.com](https://x.com). hawkx will use these session cookies to authenticate.
+  </Step>
+</Steps>
+
+## Installation methods
+
+### Using pipx (recommended)
+
+pipx installs the CLI in an isolated environment, preventing dependency conflicts:
+
+```bash
+pipx install hawkx
+```
+
+If you don't have pipx installed:
+
+```bash
+brew install pipx
+pipx ensurepath
+```
+
+### Using pip
+
+You can also install with pip using the user install method:
+
+```bash
+pip install --user hawkx
+```
+
+<Note>
+  The `--user` flag installs hawkx to your user directory, avoiding the need for sudo.
+</Note>
+
+## Verify installation
+
+After installation, verify that hawkx is available:
+
+```bash
+hawkx help
+```
+
+You should see the command list and usage information.
+
+## Chrome profile setup
+
+By default, hawkx uses Chrome's "Profile 1". If you use a different profile:
+
+```bash
+hawkx setprofile "Profile 2"
+```
+
+Or for the default Chrome profile:
+
+```bash
+hawkx setprofile Default
+```
+
+<Info>
+  Your Chrome profile setting is stored in `~/.hawkx/settings.json` and persists across sessions.
+</Info>
+
+## Troubleshooting
+
+### Command not found
+
+If you get a "command not found" error after installing with pip:
+
+1. Make sure your Python user bin directory is in your PATH:
+   ```bash
+   echo 'export PATH="$HOME/Library/Python/3.10/bin:$PATH"' >> ~/.zshrc
+   source ~/.zshrc
+   ```
+   
+2. Alternatively, use pipx which handles PATH automatically.
+
+### Chrome profile errors
+
+If hawkx can't find your Chrome profile:
+
+1. Check which profiles you have by looking in:
+   ```bash
+   ls ~/Library/Application\ Support/Google/Chrome/
+   ```
+   
+2. Set the correct profile name:
+   ```bash
+   hawkx setprofile "Profile 1"
+   ```
+
+### Not logged into X
+
+If you get authentication errors:
+
+1. Open Chrome
+2. Navigate to [x.com](https://x.com)
+3. Log in with your account
+4. Try running hawkx again
+
+<Warning>
+  Make sure you're logged into X in the same Chrome profile that hawkx is configured to use.
+</Warning>
+
+## Next steps
+
+<Card title="Quickstart" icon="rocket" href="/quickstart">
+  Run your first hawkx command and start fetching tweets
+</Card>

@@ -1,0 +1,195 @@
+---
+title: Authentication
+description: Learn how hawkx authenticates with X using Chrome cookies and macOS Keychain
+---
+
+## Overview
+
+hawkx uses your existing Chrome browser session to authenticate with X. No API keys, no OAuth flows—just your logged-in Chrome cookies.
+
+<Info>
+  **macOS Only:** Cookie decryption requires macOS Keychain access to retrieve the "Chrome Safe Storage" password.
+</Info>
+
+## How It Works
+
+hawkx reads cookies directly from Chrome's SQLite database and decrypts them using your system keychain. Here's the authentication pattern used for every API request:
+
+<Steps>
+  <Step title="Extract cookies from Chrome">
+    hawkx reads `auth_token` and `ct0` cookies from Chrome's encrypted cookie database at:
+    ```
+    ~/Library/Application Support/Google/Chrome/{profile}/Cookies
+    ```
+  </Step>
+
+  <Step title="Decrypt cookie values">
+    Chrome encrypts cookies using AES-128-CBC with a key derived from your macOS Keychain.
+    
+    **Key derivation process:**
+    - Retrieve password from Keychain: `security find-generic-password -w -s "Chrome Safe Storage"`
+    - Derive encryption key using PBKDF2-HMAC-SHA1:
+      - Password: from Keychain
+      - Salt: `"saltysalt"`
+      - Iterations: 1003
+      - Key length: 16 bytes
+    
+    **Decryption format (v10):**
+    - First 3 bytes: `"v10"` prefix
+    - Next 16 bytes: Initialization vector (IV)
+    - Remaining bytes: Encrypted cookie value
+    - After decryption: Strip 16-byte metadata prefix and PKCS7 padding
+  </Step>
+
+  <Step title="Make authenticated requests">
+    Every GraphQL request to X includes these headers:
+    ```python
+    {
+      "authorization": f"Bearer {BEARER}",        # Static token (identifies web client)
+      "x-csrf-token": cookies["ct0"],            # CSRF token (must match ct0 cookie)
+      "x-twitter-auth-type": "OAuth2Session",    # Signals authenticated session
+      "x-twitter-active-user": "yes",
+      "content-type": "application/json"
+    }
+    ```
+    
+    Plus the cookies themselves:
+    ```python
+    cookies={
+      "auth_token": "...",  # Your session identity
+      "ct0": "..."          # CSRF token
+    }
+    ```
+  </Step>
+</Steps>
+
+## Authentication Requirements
+
+<Warning>
+  You **must** be logged into x.com in Chrome. hawkx cannot work without an active Chrome session.
+</Warning>
+
+Before running any hawkx command:
+
+1. Open Chrome
+2. Navigate to [x.com](https://x.com)
+3. Log in to your account
+4. Keep Chrome installed (doesn't need to be running)
+
+## What Happens When Authentication Fails
+
+If hawkx cannot find valid session cookies, you'll see this error:
+
+```bash
+Missing X session. Log into x.com in Chrome (Profile from ~/.hawkx/settings.json), then try again.
+```
+
+This happens when:
+- You're not logged into x.com in Chrome
+- You're using the wrong Chrome profile (see [Chrome Profiles](/guides/chrome-profiles))
+- Your session expired
+- Chrome's cookie database is locked or inaccessible
+
+## Security Considerations
+
+<Accordion title="How secure is this approach?">
+  **Cookie access:**
+  - hawkx only reads cookies for `.x.com` domain
+  - Requires your macOS user password to access Keychain (on first run)
+  - Cookies are cached in memory during execution, cleared when process ends
+
+  **Network security:**
+  - All requests use HTTPS
+  - Uses the same authentication headers as X's web client
+  - No credentials are stored or transmitted to third parties
+
+  **Keychain permission:**
+  - macOS will prompt you to allow `security` command access to Keychain
+  - This is a one-time prompt per session
+  - You can revoke access anytime in System Preferences → Security & Privacy → Keychain
+</Accordion>
+
+<Accordion title="Can X detect this?">
+  hawkx makes requests identical to the web browser. It uses:
+  - The same Bearer token as x.com
+  - The same GraphQL endpoints
+  - A standard Chrome user agent
+  - Your actual browser cookies
+
+  From X's perspective, these requests look like normal web traffic. However:
+  - You're responsible for complying with X's Terms of Service
+  - Excessive request rates may trigger rate limits
+  - Use at your own risk
+</Accordion>
+
+<Accordion title="Why macOS only?">
+  Cookie decryption implementation is macOS-specific:
+  - Uses `security` command to access Keychain
+  - Chrome cookie paths are macOS-specific
+  - Encryption format (v10) is consistent on macOS
+
+  Windows and Linux use different encryption schemes and would require separate implementations.
+</Accordion>
+
+## Under the Hood
+
+The authentication flow is implemented in two core modules:
+
+**`twitter/package/utils/creds.py`** - Cookie extraction and decryption
+```python
+def get_cookies(domain: str, profile: str = "1") -> dict:
+    """Return decrypted cookies for the given domain."""
+    key = _chrome_key()  # Get decryption key from Keychain
+    cookies_path = _chrome_profile_path(profile)
+    # Copy Chrome's locked DB to temp file
+    # Query for domain cookies
+    # Decrypt v10-encrypted values
+    return cookies
+```
+
+**`twitter/package/utils/client.py`** - Request authentication
+```python
+def gql_get(path: str, params: dict) -> dict:
+    """Make authenticated GraphQL request."""
+    cookies = _get_cookies()
+    if "ct0" not in cookies or "auth_token" not in cookies:
+        raise SystemExit("Missing X session...")
+    # Build headers with Bearer token and CSRF
+    # Make request with cookies
+```
+
+## Troubleshooting
+
+<Accordion title="Error: 'security' command failed">
+  macOS Keychain access was denied. To fix:
+  1. Open System Preferences → Security & Privacy
+  2. Go to Privacy → Automation
+  3. Allow Terminal (or your shell) to access `security`
+  4. Run command again and enter your password when prompted
+</Accordion>
+
+<Accordion title="Error: 'Chrome Safe Storage' not found">
+  Chrome may not be installed or you're using a non-standard installation. Ensure:
+  - Chrome (not Chromium or Brave) is installed
+  - You've opened Chrome at least once
+  - Chrome is installed in the default location
+</Accordion>
+
+<Accordion title="Cookies found but requests fail with 401">
+  Your session may have expired. Try:
+  1. Open Chrome and visit x.com
+  2. Log out completely
+  3. Log back in
+  4. Run hawkx command again
+</Accordion>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Chrome Profiles" icon="browser" href="/guides/chrome-profiles">
+    Manage multiple X accounts with Chrome profiles
+  </Card>
+  <Card title="Output Formats" icon="file-json" href="/guides/output-formats">
+    Customize output with flags and formats
+  </Card>
+</CardGroup>

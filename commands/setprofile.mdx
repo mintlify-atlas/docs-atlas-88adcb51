@@ -1,0 +1,212 @@
+---
+title: "setprofile"
+description: "Configure Chrome profile for HawkX authentication"
+---
+
+## Overview
+
+The `setprofile` command configures which Chrome profile HawkX should use for authentication. This setting is stored in `~/.hawkx/settings.json` and persists across sessions.
+
+## Syntax
+
+```bash
+hawkx setprofile <profile>
+```
+
+## Parameters
+
+<ParamField path="profile" type="string" required>
+  Chrome profile name or number. Accepts:
+  - Profile number: `1`, `2`, `3`
+  - Profile name: `Profile 1`, `Profile 2`
+  - Default profile: `Default`
+</ParamField>
+
+## Usage Examples
+
+### Set to Default Profile
+
+```bash
+hawkx setprofile Default
+```
+
+### Set to Numbered Profile
+
+```bash
+hawkx setprofile 1
+```
+
+### Set to Named Profile
+
+```bash
+hawkx setprofile 'Profile 1'
+```
+
+### Set to Profile 2
+
+```bash
+hawkx setprofile 'Profile 2'
+```
+
+## Output
+
+When successful, the command confirms the profile change:
+
+```
+Profile set to Profile 1
+```
+
+## How Chrome Profiles Work
+
+Chrome stores separate browsing data for each profile, including:
+- Cookies and session data
+- Login credentials
+- Browser history
+- Bookmarks
+
+HawkX needs access to the cookies from your logged-in X/Twitter session, which is why specifying the correct profile is important.
+
+## Finding Your Chrome Profile
+
+### Profile Names
+
+Chrome profiles are typically named:
+- `Default` - The first/default profile
+- `Profile 1` - The second profile
+- `Profile 2` - The third profile
+- And so on...
+
+### Verify Your Profile
+
+To find which Chrome profile you use for X/Twitter:
+
+1. Open Chrome
+2. Click your profile icon in the top-right corner
+3. Note which profile is active when you're logged into X/Twitter
+4. The profile name shown there is what you should use with `setprofile`
+
+## Configuration File
+
+The setting is stored in `~/.hawkx/settings.json`:
+
+```json
+{
+  "chrome_profile": "Profile 1"
+}
+```
+
+You can also manually edit this file if needed.
+
+## Common Use Cases
+
+### Initial Setup
+
+When first installing HawkX, set your profile:
+
+```bash
+hawkx setprofile 'Profile 1'
+```
+
+### Switch Between Accounts
+
+If you have multiple X/Twitter accounts in different Chrome profiles:
+
+```bash
+# Use work account
+hawkx setprofile 'Profile 1'
+hawkx getbookmarks 50
+
+# Switch to personal account
+hawkx setprofile 'Profile 2'
+hawkx getbookmarks 50
+```
+
+### Reset to Default
+
+If you're having authentication issues, reset to the default profile:
+
+```bash
+hawkx setprofile Default
+```
+
+## Troubleshooting
+
+### Authentication Errors
+
+If you get authentication errors after running commands:
+
+<Steps>
+  <Step title="Verify Chrome Profile">
+    Check which profile you're logged into X/Twitter with in Chrome
+  </Step>
+  <Step title="Set Correct Profile">
+    Run `hawkx setprofile` with the correct profile name
+  </Step>
+  <Step title="Verify Login">
+    Open Chrome with that profile and ensure you're logged into x.com
+  </Step>
+  <Step title="Test Command">
+    Try a simple command like `hawkx getpost <tweet_id>` to verify
+  </Step>
+</Steps>
+
+### Profile Not Found
+
+If Chrome can't find the profile:
+
+1. Verify the profile name is spelled correctly
+2. Check that the profile exists in Chrome
+3. Try using the numeric format (`1`, `2`) instead of named format
+
+### Cookie Access Issues
+
+<Note>
+HawkX uses Chrome cookie decryption via macOS Keychain. Make sure Chrome has the necessary permissions.
+</Note>
+
+## Platform Compatibility
+
+<Warning>
+Currently, HawkX's Chrome cookie decryption only works on macOS, as it relies on the Keychain for secure cookie storage.
+</Warning>
+
+## Settings File Location
+
+The configuration is stored at:
+
+```
+~/.hawkx/settings.json
+```
+
+This file is created automatically when you run `setprofile` for the first time.
+
+## Notes
+
+<Tip>
+If you only have one Chrome profile and you're logged into X/Twitter there, you likely need to use `Profile 1` (not `Default`).
+</Tip>
+
+<Note>
+Profile names with spaces need to be quoted in the command line:
+```bash
+hawkx setprofile 'Profile 1'  # Correct
+hawkx setprofile Profile 1    # Incorrect - will cause an error
+```
+</Note>
+
+## Default Behavior
+
+If you've never run `setprofile`, HawkX defaults to using `Profile 1`.
+
+## Related Commands
+
+- [getuser](/commands/getuser) - Fetch tweets from a user timeline
+- [getpost](/commands/getpost) - Fetch a specific tweet by ID
+- [getbookmarks](/commands/getbookmarks) - Fetch your bookmarked tweets
+
+## Best Practices
+
+1. **Set profile before first use**: Run `setprofile` before attempting any data fetching commands
+2. **Keep Chrome open**: For best results, keep Chrome running with the active profile
+3. **Stay logged in**: Ensure you remain logged into X/Twitter in the specified profile
+4. **Document your setup**: Note which profile you're using if managing multiple accounts

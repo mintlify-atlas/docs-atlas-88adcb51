@@ -1,0 +1,319 @@
+---
+title: Troubleshooting
+description: Common errors and solutions when using hawkx
+---
+
+## Common Issues
+
+<Accordion title='Missing X session error'>
+
+**Error message:**
+```
+Missing X session. Log into x.com in Chrome (Profile from ~/.hawkx/settings.json), then try again.
+```
+
+**Cause:**
+
+This error occurs when hawkx cannot find the required `ct0` or `auth_token` cookies in your Chrome profile. These cookies are essential for authenticating requests to X's internal API.
+
+**Solutions:**
+
+1. **Log into X in Chrome**
+   - Open Chrome with the correct profile
+   - Navigate to https://x.com
+   - Log in with your X account credentials
+   - Verify you can access your timeline
+
+2. **Verify the correct profile is configured**
+   ```bash
+   cat ~/.hawkx/settings.json
+   ```
+   
+   Ensure the profile matches the Chrome profile where you're logged into X.
+
+3. **List your Chrome profiles**
+   ```bash
+   ls -la ~/Library/Application\ Support/Google/Chrome/
+   ```
+   
+   Look for directories like `Default`, `Profile 1`, `Profile 2`, etc.
+
+4. **Set the correct profile**
+   ```bash
+   hawkx setprofile 'Profile 1'
+   ```
+   or
+   ```bash
+   hawkx setprofile 'Default'
+   ```
+
+5. **Try logging out and back into X**
+   - Sometimes cookies can become corrupted or expired
+   - Log out from x.com completely
+   - Close Chrome
+   - Reopen Chrome and log back into x.com
+   - Try hawkx again
+
+</Accordion>
+
+<Accordion title='Chrome profile not found'>
+
+**Symptoms:**
+- File not found errors
+- Unable to locate Chrome Cookies database
+
+**Cause:**
+
+The profile specified in `~/.hawkx/settings.json` doesn't exist in your Chrome installation.
+
+**Solutions:**
+
+1. **List available Chrome profiles**
+   ```bash
+   ls -la ~/Library/Application\ Support/Google/Chrome/
+   ```
+
+2. **Check for the Cookies database**
+   ```bash
+   ls -la ~/Library/Application\ Support/Google/Chrome/Profile\ 1/Cookies
+   ```
+
+3. **Use the correct profile name**
+   - If you see `Default`, use: `hawkx setprofile Default`
+   - If you see `Profile 1`, use: `hawkx setprofile 1` or `hawkx setprofile 'Profile 1'`
+   - If you see `Profile 2`, use: `hawkx setprofile 2` or `hawkx setprofile 'Profile 2'`
+
+<Note>
+Numeric profile names like `"1"` or `"2"` are automatically converted to `"Profile 1"` and `"Profile 2"`. You can use either format.
+</Note>
+
+</Accordion>
+
+<Accordion title='Cookie decryption failure (macOS Keychain)'>
+
+**Symptoms:**
+- Keychain access denied
+- `security: command not found`
+- Password retrieval errors
+
+**Cause:**
+
+hawkx uses the macOS `security` command to retrieve the "Chrome Safe Storage" password from Keychain, which is required to decrypt Chrome cookies.
+
+**Solutions:**
+
+1. **Allow Keychain access**
+   - When prompted by macOS, click "Always Allow" to grant terminal access to Keychain
+   - If you clicked "Deny" previously, you may need to manually allow it in Keychain Access
+
+2. **Grant Keychain permissions manually**
+   - Open "Keychain Access" app (search in Spotlight)
+   - Search for "Chrome Safe Storage"
+   - Right-click → Get Info → Access Control
+   - Add your terminal application (Terminal.app, iTerm, etc.)
+   - Or choose "Allow all applications to access this item"
+
+3. **Verify the security command works**
+   ```bash
+   security find-generic-password -w -s "Chrome Safe Storage"
+   ```
+   
+   This should output a password string. If it fails, your Keychain configuration may need attention.
+
+4. **Restart Keychain**
+   ```bash
+   killall -9 SecurityAgent
+   ```
+
+<Warning>
+The `security` command is macOS-specific. hawkx currently only supports macOS due to Chrome's use of platform-specific encryption for stored cookies.
+</Warning>
+
+</Accordion>
+
+<Accordion title='Cookies database locked'>
+
+**Symptoms:**
+- Database locked errors
+- SQLite busy errors
+
+**Cause:**
+
+Chrome keeps the Cookies database locked while the browser is running. hawkx handles this by copying the database to a temporary file before reading.
+
+**Solutions:**
+
+1. **Close Chrome completely**
+   ```bash
+   killall "Google Chrome"
+   ```
+   
+   Then try hawkx again.
+
+2. **Check for Chrome processes**
+   ```bash
+   ps aux | grep Chrome
+   ```
+   
+   If Chrome is still running, quit it from the menu or force quit.
+
+3. **Wait a moment and retry**
+   - Sometimes Chrome takes a few seconds to release the database lock
+
+<Note>
+In normal operation, you shouldn't need to close Chrome. The temporary copy mechanism should handle locked databases. If you're seeing persistent lock errors, there may be file permission issues.
+</Note>
+
+</Accordion>
+
+<Accordion title='Rate limiting and API errors'>
+
+**Symptoms:**
+- HTTP 429 errors
+- "Too many requests" messages
+- Temporary blocks from X
+
+**Cause:**
+
+X's internal API has rate limits. Making too many requests in a short period can trigger temporary restrictions.
+
+**Solutions:**
+
+1. **Reduce request frequency**
+   - Add delays between commands
+   - Fetch smaller batches (reduce the `limit` parameter)
+
+2. **Avoid rapid repeated requests**
+   ```bash
+   # Bad: rapid-fire requests
+   for i in {1..100}; do hawkx getuser someone 50; done
+   
+   # Better: single larger request
+   hawkx getuser someone 100
+   ```
+
+3. **Check for 401 Unauthorized errors**
+   - This usually means your session expired
+   - Log out and back into x.com in Chrome
+   - Verify cookies are fresh
+
+4. **Respect X's Terms of Service**
+   - hawkx is for personal use and research
+   - Avoid aggressive scraping or automation
+   - Be mindful of rate limits
+
+<Warning>
+Excessive use of hawkx may result in temporary or permanent restrictions on your X account. Use responsibly and comply with X's Terms of Service.
+</Warning>
+
+</Accordion>
+
+<Accordion title='Empty or malformed JSON output'>
+
+**Symptoms:**
+- `{"error": "Tweet not found"}`
+- Empty arrays `[]`
+- Missing fields in output
+
+**Cause:**
+
+1. **Protected accounts**: User has a private account and you don't follow them
+2. **Deleted tweets**: The tweet or user no longer exists
+3. **API structure changes**: X occasionally changes their internal API format
+4. **Suspended accounts**: The account has been suspended
+
+**Solutions:**
+
+1. **Verify the resource exists**
+   - Check the user/tweet in a web browser
+   - Ensure you have access (for protected accounts)
+
+2. **Check for typos**
+   ```bash
+   # Wrong
+   hawkx getuser elon_musk
+   
+   # Correct
+   hawkx getuser elonmusk
+   ```
+
+3. **Try fetching raw output**
+   ```bash
+   hawkx getpost 1234567890 | jq .
+   ```
+
+4. **Update hawkx**
+   ```bash
+   pipx upgrade hawkx
+   ```
+
+</Accordion>
+
+<Accordion title='Command not found: hawkx'>
+
+**Cause:**
+
+The hawkx executable is not in your system PATH.
+
+**Solutions:**
+
+1. **If installed with pipx**
+   ```bash
+   pipx ensurepath
+   ```
+   
+   Then restart your terminal.
+
+2. **If installed with pip --user**
+   
+   Add to your `~/.zshrc` or `~/.bashrc`:
+   ```bash
+   export PATH="$HOME/.local/bin:$PATH"
+   ```
+   
+   Then run:
+   ```bash
+   source ~/.zshrc  # or source ~/.bashrc
+   ```
+
+3. **Verify installation**
+   ```bash
+   pipx list | grep hawkx
+   ```
+   or
+   ```bash
+   pip list | grep hawkx
+   ```
+
+4. **Reinstall if necessary**
+   ```bash
+   pipx uninstall hawkx
+   pipx install hawkx
+   ```
+
+</Accordion>
+
+## Getting Help
+
+If you encounter an issue not covered here:
+
+1. **Check the command help**
+   ```bash
+   hawkx --help
+   hawkx getuser --help
+   ```
+
+2. **Verify your setup**
+   - macOS version
+   - Chrome version
+   - Python version (3.10+ required)
+   - hawkx version: `pipx list | grep hawkx`
+
+3. **Test cookie extraction manually**
+   ```bash
+   python3 -c "from twitter.package.utils.creds import get_cookies; print(get_cookies('.x.com'))"
+   ```
+
+4. **Review error messages carefully**
+   - Most errors include actionable guidance
+   - Check for file paths, permission issues, or network errors

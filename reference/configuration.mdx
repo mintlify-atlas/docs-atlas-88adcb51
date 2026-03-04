@@ -1,0 +1,164 @@
+---
+title: Configuration
+description: Configure hawkx settings and Chrome profile selection
+---
+
+## Settings File
+
+hawkx stores configuration in `~/.hawkx/settings.json`. This file is automatically created on first run with default values.
+
+### File Location
+
+```
+~/.hawkx/settings.json
+```
+
+### JSON Schema
+
+The settings file is a simple JSON object with the following structure:
+
+```json
+{
+  "profile": "1"
+}
+```
+
+## Configuration Options
+
+### `profile`
+
+**Type:** `string`  
+**Default:** `"1"` (Chrome Profile 1)
+
+Specifies which Chrome profile to use for extracting session cookies.
+
+**Accepted formats:**
+- Numeric string: `"1"`, `"2"`, `"3"` (maps to Profile 1, Profile 2, etc.)
+- Full profile name: `"Profile 1"`, `"Default"`
+
+**Examples:**
+
+```json
+{
+  "profile": "1"
+}
+```
+
+```json
+{
+  "profile": "Profile 2"
+}
+```
+
+```json
+{
+  "profile": "Default"
+}
+```
+
+### Setting the Profile
+
+You can configure the Chrome profile in two ways:
+
+#### Using the CLI Command
+
+The recommended way to set your profile:
+
+```bash
+hawkx setprofile 1
+```
+
+```bash
+hawkx setprofile 'Profile 2'
+```
+
+This command automatically updates `~/.hawkx/settings.json` with your selection.
+
+#### Manual Edit
+
+Alternatively, edit `~/.hawkx/settings.json` directly:
+
+```bash
+nano ~/.hawkx/settings.json
+```
+
+Update the profile value and save.
+
+## Environment Variables
+
+### `CHROME_PROFILE`
+
+**Type:** `string`  
+**Default:** Uses value from `~/.hawkx/settings.json` (defaults to `"1"` if file doesn't exist)
+
+Overrides the Chrome profile selection for the current command without modifying the settings file.
+
+**Usage:**
+
+```bash
+CHROME_PROFILE='Profile 2' hawkx getuser elonmusk 20
+```
+
+```bash
+export CHROME_PROFILE='Default'
+hawkx getbookmarks 50
+```
+
+<Note>
+The `CHROME_PROFILE` environment variable takes precedence over `~/.hawkx/settings.json`. This is useful for testing different profiles or running commands with specific profiles temporarily.
+</Note>
+
+## Chrome Profile Paths
+
+hawkx reads cookies from Chrome's SQLite database stored in your user directory.
+
+**Profile location on macOS:**
+
+```
+~/Library/Application Support/Google/Chrome/{profile}/Cookies
+```
+
+Where `{profile}` is:
+- `Profile 1` for profile "1"
+- `Profile 2` for profile "2"
+- `Default` for the default profile
+
+<Warning>
+hawkx is currently macOS-only because it uses macOS Keychain to decrypt Chrome cookies. The `security` command-line tool retrieves the "Chrome Safe Storage" password needed for decryption.
+</Warning>
+
+## How Profile Selection Works
+
+1. **Environment variable check**: If `CHROME_PROFILE` is set, use that value
+2. **Settings file check**: Read from `~/.hawkx/settings.json`
+3. **Default fallback**: If no settings file exists, defaults to `"1"`
+4. **Path resolution**: Numeric strings like `"1"` are converted to `"Profile 1"`
+
+## Examples
+
+### Use Profile 1 (Default)
+
+```bash
+hawkx setprofile 1
+hawkx getuser elonmusk 20
+```
+
+### Switch to Profile 2
+
+```bash
+hawkx setprofile 'Profile 2'
+hawkx getbookmarks 50
+```
+
+### Temporary Override
+
+```bash
+# Settings file has "Profile 1", but use "Default" for this command
+CHROME_PROFILE='Default' hawkx getpost 1234567890
+```
+
+### Check Current Settings
+
+```bash
+cat ~/.hawkx/settings.json
+```
